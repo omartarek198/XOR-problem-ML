@@ -1,7 +1,7 @@
 import ANN
-
+import random
 import numpy as np
-NN = ANN.NeuralNetwork(2,4,1,0.1)
+NN = ANN.NeuralNetwork(2,2,1,0.4)
 import sys
 
 import pygame
@@ -18,20 +18,17 @@ labels.append(0)
 labels.append(1)
 
 #train
+ 
 
-
-for n in range (10000):
-
+for n in range (1000):
+    # i = random.randint(-1,len(labels)-1)
     for i in range(len(labels)):
         NN.train(inputs[i], labels[i])
 
 
 
-
-
-
-
-
+for i in range (len(labels)):
+    print(NN.Guess(inputs[i]))
 # Configuration
 
 pygame.init()
@@ -86,4 +83,4 @@ def DrawScene():
 
 
 
-DrawScene()
+# DrawScene()

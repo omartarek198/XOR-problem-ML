@@ -2,6 +2,8 @@
 import numpy as np
 def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
+def dSigmoid (x):
+  return x * (1 - x)
 
 
 class NeuralNetwork(object):
@@ -19,12 +21,16 @@ class NeuralNetwork(object):
         self.lr = learning_rate
 
 
+
         self.activation_function = sigmoid
 
-    def train(self, inputs_list, targets_list):
+        self.derivative = dSigmoid
 
-        inputs = np.array(inputs_list, ndmin=2).T
-        targets = np.array(targets_list, ndmin=2).T
+
+    def train(self, inputs, targets):
+
+        inputs = np.array(inputs)
+        targets = np.array(targets)
 
 
 
@@ -35,18 +41,66 @@ class NeuralNetwork(object):
 
 
         final_inputs = np.dot((self.weights_hidden_to_output), hidden_outputs)
-        final_outputs = final_inputs
+
+        final_outputs = self.activation_function(final_inputs)
 
 
         output_errors = targets - final_outputs
 
         hidden_errors = np.dot(self.weights_hidden_to_output.T, output_errors)
-        hidden_grad = hidden_errors * ((hidden_outputs) * (1 - hidden_outputs))
 
-        self.weights_hidden_to_output += (self.lr) * (hidden_outputs.T * output_errors)
-        self.weights_input_to_hidden += (self.lr) * ((inputs.T * hidden_grad))
+
+        #
+        # var
+        gradient_output = self.derivative (final_outputs)
+
+        # // Weight
+        # by
+        # errors and learing
+        # rate
+        gradient_output = np.dot(gradient_output,output_errors )
+        gradient_output =np.multiply(self.lr,gradient_output)
+
+        #
+        # // Gradients
+        # for next layer, more back propogation!
+        # var
+        gradient_hidden = self.derivative(hidden_outputs)
+
+        # // Weight
+        # by
+        # errors and learning
+        # rate
+        gradient_hidden = np.dot(gradient_hidden.T,hidden_errors)
+        gradient_hidden= np.multiply(self.lr , gradient_hidden)
+        #
+        # // Change in weights
+        # from HIDDEN
+        # --> OUTPUT
+        # var
+        hidden_outputs_T = hidden_outputs.T
+        # var
+        deltaW_output = np.dot(gradient_output, hidden_outputs_T)
+        self.weights_hidden_to_output = np.add(deltaW_output,self.weights_hidden_to_output)
+
+        #
+        # // Change in weights
+        # from INPUT
+        # --> HIDDEN
+        # var
+        inputs_T = inputs.T
+
+        deltaW_hidden = np.dot(gradient_hidden, inputs_T);
+        self.weights_input_to_hidden = np.add(self.weights_input_to_hidden,deltaW_hidden)
+
+
+
+
+
+
+
     def Guess(self,inputs):
-        inputs = np.array(inputs, ndmin=2).T
+        inputs = np.array(inputs)
 
         hidden_inputs = np.dot((self.weights_input_to_hidden), inputs)
         hidden_outputs = self.activation_function(hidden_inputs)
@@ -55,5 +109,5 @@ class NeuralNetwork(object):
         final_inputs = np.dot((self.weights_hidden_to_output), hidden_outputs)
         final_outputs = final_inputs
 
-        return min(final_outputs,1)
+        return self.activation_function(final_outputs)
 
